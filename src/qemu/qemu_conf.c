@@ -1033,6 +1033,7 @@ virCapsPtr virQEMUDriverCreateCapabilities(virQEMUDriverPtr driver)
     virQEMUDriverConfigPtr cfg = virQEMUDriverGetConfig(driver);
     const int virtTypes[] = {VIR_DOMAIN_VIRT_KVM,
                              VIR_DOMAIN_VIRT_QEMU,};
+    int sev_error = 0;
 
     /* Basic host arch / guest machine capabilities */
     if (!(caps = virQEMUCapsInit(driver->qemuCapsCache)))
@@ -1041,6 +1042,14 @@ virCapsPtr virQEMUDriverCreateCapabilities(virQEMUDriverPtr driver)
     if (virGetHostUUID(caps->host.host_uuid)) {
         virReportError(VIR_ERR_INTERNAL_ERROR,
                        "%s", _("cannot get the host uuid"));
+        goto error;
+    }
+
+    /*get host pdh key if host supports sev*/
+    caps->host.host_pdh = NULL;
+    if (virCapabilitiesGetHostPDH(&(caps->host.host_pdh), &sev_error) !=0 || sev_error != 0) {
+        virReportError(VIR_ERR_INTERNAL_ERROR,
+                        _("erro when retrieve the host pdh key, erro: 0x%x"), sev_error);
         goto error;
     }
 
