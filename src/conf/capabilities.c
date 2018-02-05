@@ -1081,6 +1081,15 @@ virCapabilitiesFormatXML(virCapsPtr caps)
         virBufferAddLit(&buf, "</secmodel>\n");
     }
 
+    /*add host pdh key into XML file if host supports sev*/
+    if(caps->host.host_pdh != NULL && caps->host.host_pdh[0] != '\0'){
+        virBufferAddLit(&buf, "<sev>\n");
+        virBufferAdjustIndent(&buf, 2);
+         virBufferAsprintf(&buf, "<PDH_KEY>%s</PDH_KEY>\n", caps->host.host_pdh);
+         virBufferAdjustIndent(&buf, -2);
+         virBufferAddLit(&buf, "</sev>\n");
+    }
+
     virBufferAdjustIndent(&buf, -2);
     virBufferAddLit(&buf, "</host>\n\n");
 
