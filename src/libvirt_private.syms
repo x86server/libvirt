@@ -65,6 +65,7 @@ virCapabilitiesInitPages;
 virCapabilitiesNew;
 virCapabilitiesSetHostCPU;
 virCapabilitiesSetNetPrefix;
+virCapabilitiesGetHostPDH;
 
 
 # conf/cpu_conf.h

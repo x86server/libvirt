@@ -29,6 +29,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <linux/ioctl.h>
+#include <libvirt/psp-sev.h>
 
 #include "capabilities.h"
 #include "cpu_conf.h"
@@ -246,6 +250,7 @@ virCapabilitiesDispose(void *object)
     VIR_FREE(caps->host.pagesSize);
     virCPUDefFree(caps->host.cpu);
     virObjectUnref(caps->host.resctrl);
+    VIR_FREE(caps->host.host_pdh);
 }
 
 /**
@@ -1743,5 +1748,104 @@ virCapabilitiesInitCaches(virCapsPtr caps)
     VIR_DIR_CLOSE(dirp);
     virCapsHostCacheBankFree(bank);
     virBitmapFree(cpus);
+    return ret;
+}
+
+/**
+ * virCapabilitiesGetHostPDH
+ * @host_pdh: address to hold the host PDH key
+ * @error: hold the pointer to the address that save the error code
+ *
+ *
+ * Returns non-zero on error.
+ */
+int virCapabilitiesGetHostPDH(char** host_pdh, int *error)
+{
+    int fd;
+    int ret;
+    struct sev_issue_cmd  input;
+    struct sev_user_data_status sev_platform_status;
+    struct sev_user_data_pdh_cert_export sev_pdh_cert;
+    char* temp;
+    char* temp_base64;
+
+    if(host_pdh == NULL || *host_pdh){
+        virReportError(VIR_ERR_INTERNAL_ERROR,
+                       "%s", _( "buffer to hold host pdh cannot be invalid"));
+        return -EFAULT;
+    }
+
+    if (!virFileExists("/dev/sev")) {
+        VIR_DEBUG("/dev/sev does not exist, host is not sev capable");
+        return 0;
+    }
+
+    if ((fd = open("/dev/sev", O_RDONLY)) < 0){
+        virReportSystemError(errno, "%s", _("cannot open file /dev/sev"));
+        return -ENODEV;
+    }
+
+    memset(&input, 0x0, sizeof(input));
+
+    input.cmd = SEV_PLATFORM_STATUS;
+    input.data = (__u64)&sev_platform_status;
+    ret = ioctl(fd, SEV_ISSUE_CMD, &input);
+    if(ret != 0){
+        virReportError(VIR_ERR_INTERNAL_ERROR,
+                        _( "SEV_PLATFORM_STATUS failed, ret 0x%0x"), ret);
+        goto erro;
+    }
+    VIR_DEBUG("sev_platform_status: api_major %d, api_minor %d, state %d, flags %d, build %d, gest_count %d", 
+              sev_platform_status.api_major, sev_platform_status.api_minor, sev_platform_status.state, 
+              sev_platform_status.flags, sev_platform_status.build, sev_platform_status.guest_count);
+
+    input.cmd = SEV_PDH_GEN;
+    input.data = 0;
+    ret = ioctl(fd, SEV_ISSUE_CMD, &input);
+    if(ret != 0){
+        virReportError(VIR_ERR_INTERNAL_ERROR,
+                        _( "SEV_PEK_GEN failed, ret 0x%0x, erro 0x%0x"), ret, input.error);
+        goto erro;
+    }
+
+    sev_pdh_cert.cert_chain_len = 0;
+    sev_pdh_cert.pdh_cert_len = 0;
+    input.cmd = SEV_PDH_CERT_EXPORT;
+    input.data = (__u64)&sev_pdh_cert;
+    ret = ioctl(fd, SEV_ISSUE_CMD, &input);
+
+    VIR_DEBUG("SEV_PDH_CERT_EXPORT: cert_chain_len 0x%0x, sev_pdh_cert.pdh_cert_len 0x%0x", sev_pdh_cert.cert_chain_len, sev_pdh_cert.pdh_cert_len);
+
+    if(VIR_ALLOC_N(temp,sev_pdh_cert.cert_chain_len) < 0)
+        goto erro;
+    sev_pdh_cert.cert_chain_address=(__u64)temp;
+
+    if(VIR_ALLOC_N(temp,sev_pdh_cert.pdh_cert_len) < 0)
+        goto erro;
+    sev_pdh_cert.pdh_cert_address=(__u64)temp;
+
+    input.cmd = SEV_PDH_CERT_EXPORT;
+    input.data = (__u64)&sev_pdh_cert;
+    ret = ioctl(fd, SEV_ISSUE_CMD, &input);
+    if(ret != 0){
+        virReportError(VIR_ERR_INTERNAL_ERROR,
+                        _( "SEV_PDH_CERT_EXPORT failed, ret 0x%0x, erro 0x%0x"), ret, input.error);
+        goto erro;
+    }
+
+    temp_base64 = virStringEncodeBase64((const uint8_t*)sev_pdh_cert.pdh_cert_address, sev_pdh_cert.pdh_cert_len);
+    *host_pdh=temp_base64;
+
+    temp = (char*)sev_pdh_cert.cert_chain_address;
+    VIR_FREE(temp);
+    temp = (char*)sev_pdh_cert.pdh_cert_address;
+    VIR_FREE(temp);
+
+erro:
+    if (error) {
+        *error = input.error;
+    }
+
+    close(fd);
     return ret;
 }
