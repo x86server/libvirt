@@ -2459,6 +2459,9 @@ struct _virDomainDef {
                              callbacks failed for a non-critical reason
                              (was not able to fill in some data) and thus
                              should be re-run before starting */
+    char* dh_key;
+    char* sessionInfo;
+    unsigned long sev_policy;
 };
 
 

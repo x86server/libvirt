@@ -3079,6 +3079,9 @@ void virDomainDefFree(virDomainDefPtr def)
 
     xmlFreeNode(def->metadata);
 
+    VIR_FREE(def->dh_key);
+    VIR_FREE(def->sessionInfo);
+
     VIR_FREE(def);
 }
 
@@ -18037,6 +18040,66 @@ virDomainIOThreadSchedParse(xmlNodePtr node,
 }
 
 
+static int virDomainSEVParse(virDomainDefPtr def,
+                         xmlXPathContextPtr ctxt)
+{
+    char *temp = NULL;
+    unsigned long sev_policy;
+    int rc;
+
+    /*parse sev tags*/
+    if ((virXPathNode("./sev[1]", ctxt)) != NULL) {
+        temp = virXPathString("string(./sev/DHKEY)", ctxt);
+         if (temp){
+            if(VIR_STRDUP(def->dh_key, temp) < 0){
+                VIR_FREE(temp);
+                goto error;
+            }
+            VIR_FREE(temp);
+        }
+        else{
+            virReportError(VIR_ERR_XML_ERROR, "%s",
+                               _("Unknown SEV DHKEY"));
+            goto error;
+        }
+
+        temp = virXPathString("string(./sev/SessionInfo)", ctxt);
+        if (temp){
+            if(VIR_STRDUP(def->sessionInfo, temp) < 0){
+                VIR_FREE(temp);
+                goto error;
+            }
+
+            VIR_FREE(temp);
+        }
+        else{
+            virReportError(VIR_ERR_XML_ERROR, "%s",
+                               _("Unknown SEV SessionInfo"));
+            goto error;
+        }
+
+        rc = virXPathULongHex("string(./sev/Policy)", ctxt, &sev_policy);
+        if (rc != 0 ) {
+            virReportError(VIR_ERR_XML_ERROR,
+                       _("Unknow sev_policy nubmer rc: %d"), rc);
+            goto error;
+        } else{
+            def->sev_policy = sev_policy;
+        }
+
+    }else{
+        VIR_DEBUG("not sev tag");
+    }
+
+    return 0;
+
+error:
+    VIR_FREE(def->dh_key);
+    VIR_FREE(def->sessionInfo);
+    return -1;
+}
+
+
 static int
 virDomainVcpuParse(virDomainDefPtr def,
                    xmlXPathContextPtr ctxt,
@@ -19089,6 +19152,20 @@ virDomainDefParseXML(xmlDocPtr xml,
             goto error;
     }
     VIR_FREE(nodes);
+
+    def->dh_key = NULL;
+    def->sessionInfo = NULL;
+    def->sev_policy = 0;
+    if(caps->host.host_pdh != NULL && caps->host.host_pdh[0] != '\0'){
+        VIR_DEBUG("host is sev capable");
+        if(virDomainSEVParse(def, ctxt) < 0){
+            virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
+                       _("cannot parse SEV tag from domain XML file"));
+            goto error;
+        }
+    }else{
+        VIR_DEBUG("host is not sev capble");
+    }
 
     if (virCPUDefParseXML(ctxt, "./cpu[1]", VIR_CPU_TYPE_GUEST, &def->cpu) < 0)
         goto error;
