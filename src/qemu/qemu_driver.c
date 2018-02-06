@@ -1794,6 +1794,12 @@ static virDomainPtr qemuDomainCreateXML(virConnectPtr conn,
                                         NULL, parse_flags)))
         goto cleanup;
 
+    /*force VM in pause mode if launch VM in SEV mode*/
+    if(caps->host.host_pdh != NULL && caps->host.host_pdh[0] != '\0' && def->dh_key != NULL ){
+        start_flags |=  VIR_QEMU_PROCESS_START_PAUSED;
+        VIR_DEBUG("force VM in pause mode when launch VM in SEV mode");
+    }
+
     if (virDomainCreateXMLEnsureACL(conn, def) < 0)
         goto cleanup;
 
