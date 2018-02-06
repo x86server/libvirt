@@ -10211,6 +10211,31 @@ qemuBuildCommandLineValidate(virQEMUDriverPtr driver,
     return 0;
 }
 
+static void
+qemuBuildSEVGuestLaunchCommandLine(virCommandPtr cmd, virDomainDefPtr def)
+{
+
+     virBuffer buf_sev = VIR_BUFFER_INITIALIZER;
+     virBuffer buf_sev_object = VIR_BUFFER_INITIALIZER;
+
+     VIR_DEBUG("preparing SEV guset launch");
+
+     virCommandAddArg(cmd, "-machine");
+     virBufferAddLit(&buf_sev, "memory-encryption=sev0"); //hard-coded sev0
+     virCommandAddArgBuffer(cmd, &buf_sev);
+
+     virCommandAddArg(cmd, "-object");
+     virBufferAddLit(&buf_sev_object, "sev-guest");
+     virBufferAddLit(&buf_sev_object, ",id=sev0");
+     virBufferAsprintf(&buf_sev_object, ",policy=0x%0x", (unsigned int)def->sev_policy);
+     /*cannot test the following blobs from GO for now*/
+     virBufferAsprintf(&buf_sev_object, ",dh-cert-file=%s", def->dh_key);
+     virBufferAsprintf(&buf_sev_object, ",session-file=%s", def->sessionInfo);
+
+     virCommandAddArgBuffer(cmd, &buf_sev_object);
+
+     return;
+}
 
 /*
  * Constructs a argv suitable for launching qemu with config defined
@@ -10237,6 +10262,7 @@ qemuBuildCommandLine(virQEMUDriverPtr driver,
     virDomainDefPtr def = vm->def;
     virQEMUCapsPtr qemuCaps = priv->qemuCaps;
     bool chardevStdioLogd = priv->chardevStdioLogd;
+    virCapsPtr caps = virQEMUDriverGetCapabilities(driver, false);
 
     VIR_DEBUG("driver=%p def=%p mon=%p json=%d "
               "qemuCaps=%p migrateURI=%s snapshot=%p vmop=%d",
@@ -10269,6 +10295,13 @@ qemuBuildCommandLine(virQEMUDriverPtr driver,
 
     if (enableFips)
         virCommandAddArg(cmd, "-enable-fips");
+
+    /*build qemu cmd options for launching sev guest*/
+    if(caps->host.host_pdh != NULL && caps->host.host_pdh[0] != '\0' && def->dh_key != NULL ){
+        VIR_DEBUG("host is sev capable and GO launch guest in sev mode");
+        qemuBuildSEVGuestLaunchCommandLine(cmd, def);
+    }else
+        VIR_DEBUG("host is not sev capable or GO does not require guest lanuch in sev mode");
 
     if (qemuBuildMachineCommandLine(cmd, cfg, def, qemuCaps) < 0)
         goto error;
