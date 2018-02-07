@@ -7794,3 +7794,38 @@ qemuMonitorJSONSetWatchdogAction(qemuMonitorPtr mon,
     virJSONValueFree(reply);
     return ret;
 }
+
+int
+qemuMonitorJSONGetSevMeasurement(qemuMonitorPtr mon)
+{
+    int ret = -1;
+    const char *sev_measurement;
+    virJSONValuePtr cmd;
+    virJSONValuePtr reply = NULL;
+    virJSONValuePtr data;
+
+    if (!(cmd = qemuMonitorJSONMakeCommand("query-sevmeasurement", NULL)))
+        return -1;
+
+    if (qemuMonitorJSONCommand(mon, cmd, &reply) < 0)
+        goto cleanup;
+
+    if (qemuMonitorJSONCheckError(cmd, reply) < 0)
+        goto cleanup;
+
+    data = virJSONValueObjectGetObject(reply, "return");
+
+    if ((sev_measurement = virJSONValueObjectGetString(data, "sevmeasurement"))) {
+        VIR_DEBUG("Got VM sev_measurment %s", sev_measurement);
+        qemuMonitorEmitSEVMeasurement(mon, sev_measurement);
+    } else {
+        VIR_WARN("missing sev measurement value");
+    }
+
+    ret = 0;
+
+ cleanup:
+    virJSONValueFree(cmd);
+    virJSONValueFree(reply);
+    return ret;
+}

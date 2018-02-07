@@ -4372,3 +4372,17 @@ qemuMonitorSetWatchdogAction(qemuMonitorPtr mon,
 
     return qemuMonitorJSONSetWatchdogAction(mon, action);
 }
+
+int
+qemuMonitorGetSevMeasurement(qemuMonitorPtr mon)
+{
+    QEMU_CHECK_MONITOR(mon);
+
+    if (mon->json)
+        return qemuMonitorJSONGetSevMeasurement(mon);
+    else{
+        VIR_WARN("not implement qemuMonitorTextGetSEVMeasurement yet");
+        //return qemuMonitorTextGetStatus(mon, running, reason);
+        return 0;
+    }
+}

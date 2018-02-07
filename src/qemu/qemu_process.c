@@ -6008,6 +6008,18 @@ qemuProcessLaunch(virConnectPtr conn,
     if (qemuProcessWaitForMonitor(driver, vm, asyncJob, logCtxt) < 0)
         goto cleanup;
 
+   if(caps->host.host_pdh != NULL && caps->host.host_pdh[0] != '\0' && vm->def->dh_key != NULL ){
+        if (qemuDomainObjEnterMonitorAsync(driver, vm, asyncJob) < 0)
+            goto cleanup;
+
+        VIR_DEBUG("query VM sev_measurement and emit to client");
+        if(qemuMonitorGetSevMeasurement(QEMU_DOMAIN_PRIVATE(vm)->mon) < 0)
+            goto cleanup;
+
+        if (qemuDomainObjExitMonitor(driver, vm) < 0)
+            goto cleanup;
+    }
+
     if (qemuConnectAgent(driver, vm) < 0)
         goto cleanup;
 
