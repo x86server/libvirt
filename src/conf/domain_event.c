@@ -61,6 +61,7 @@ static virClassPtr virDomainEventJobCompletedClass;
 static virClassPtr virDomainEventDeviceRemovalFailedClass;
 static virClassPtr virDomainEventMetadataChangeClass;
 static virClassPtr virDomainEventBlockThresholdClass;
+static virClassPtr virDomainEventSEVMeasurementClass;
 
 static void virDomainEventDispose(void *obj);
 static void virDomainEventLifecycleDispose(void *obj);
@@ -83,6 +84,7 @@ static void virDomainEventJobCompletedDispose(void *obj);
 static void virDomainEventDeviceRemovalFailedDispose(void *obj);
 static void virDomainEventMetadataChangeDispose(void *obj);
 static void virDomainEventBlockThresholdDispose(void *obj);
+static void virDomainEventSEVMeasurementDispose(void *obj);
 
 static void
 virDomainEventDispatchDefaultFunc(virConnectPtr conn,
@@ -291,6 +293,13 @@ struct _virDomainEventBlockThreshold {
 typedef struct _virDomainEventBlockThreshold virDomainEventBlockThreshold;
 typedef virDomainEventBlockThreshold *virDomainEventBlockThresholdPtr;
 
+struct _virDomainEventSEVMeasurement {
+    virDomainEvent parent;
+
+    char* sev_measurement;
+};
+typedef struct _virDomainEventSEVMeasurement virDomainEventSEVMeasurement;
+typedef virDomainEventSEVMeasurement *virDomainEventSEVMeasurementPtr;
 
 static int
 virDomainEventsOnceInit(void)
@@ -421,6 +430,14 @@ virDomainEventsOnceInit(void)
                       sizeof(virDomainEventBlockThreshold),
                       virDomainEventBlockThresholdDispose)))
         return -1;
+
+    if (!(virDomainEventSEVMeasurementClass =
+          virClassNew(virDomainEventClass,
+                      "virDomainEventMeasurement",
+                      sizeof(virDomainEventSEVMeasurement),
+                      virDomainEventSEVMeasurementDispose)))
+        return -1;
+
     return 0;
 }
 
@@ -629,6 +646,14 @@ virDomainEventBlockThresholdDispose(void *obj)
     VIR_FREE(event->path);
 }
 
+static void
+virDomainEventSEVMeasurementDispose(void *obj)
+{
+    virDomainEventSEVMeasurementPtr event = obj;
+    VIR_DEBUG("obj=%p", event);
+
+    VIR_FREE(event->sev_measurement);
+}
 
 static void *
 virDomainEventNew(virClassPtr klass,
@@ -1757,6 +1782,50 @@ virDomainEventBlockThresholdNewFromDom(virDomainPtr dom,
                                            dev, path, threshold, excess);
 }
 
+virObjectEventPtr
+virDomainEventSEVMeasurementNewFromObj(virDomainObjPtr obj,
+                                  const char* sev_measurement)
+{
+    virDomainEventSEVMeasurementPtr ev;
+
+    if (virDomainEventsInitialize() < 0)
+        return NULL;
+
+    if (!(ev = virDomainEventNew(virDomainEventSEVMeasurementClass,
+                                 VIR_DOMAIN_EVENT_ID_SEV_MEASUREMENT,
+                                 obj->def->id, obj->def->name,
+                                 obj->def->uuid)))
+        return NULL;
+
+    if (VIR_STRDUP(ev->sev_measurement, sev_measurement) < 0 ) {
+        virObjectUnref(ev);
+        return NULL;
+    }
+
+    return (virObjectEventPtr)ev;
+}
+
+virObjectEventPtr
+virDomainEventSEVMeasurementNewFromDom(virDomainPtr dom,
+                                  const char* sev_measurement)
+{
+    virDomainEventSEVMeasurementPtr ev;
+
+    if (virDomainEventsInitialize() < 0)
+        return NULL;
+
+    if (!(ev = virDomainEventNew(virDomainEventSEVMeasurementClass,
+                                 VIR_DOMAIN_EVENT_ID_SEV_MEASUREMENT,
+                                 dom->id, dom->name, dom->uuid)))
+        return NULL;
+
+    if (VIR_STRDUP(ev->sev_measurement, sev_measurement) < 0 ) {
+        virObjectUnref(ev);
+        return NULL;
+    }
+
+    return (virObjectEventPtr)ev;
+}
 
 static void
 virDomainEventDispatchDefaultFunc(virConnectPtr conn,
@@ -2041,6 +2110,19 @@ virDomainEventDispatchDefaultFunc(virConnectPtr conn,
                                                               cbopaque);
             goto cleanup;
         }
+
+    case VIR_DOMAIN_EVENT_ID_SEV_MEASUREMENT:
+        {
+            virDomainEventSEVMeasurementPtr SEVMeasurementEvent;
+
+            SEVMeasurementEvent = (virDomainEventSEVMeasurementPtr)event;
+
+            ((virConnectDomainEventSEVMeasurementCallback)cb)(conn, dom,
+                                                         SEVMeasurementEvent->sev_measurement,
+                                                         cbopaque);
+            goto cleanup;
+        }
+
     case VIR_DOMAIN_EVENT_ID_LAST:
         break;
     }

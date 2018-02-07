@@ -246,6 +246,10 @@ typedef int (*qemuMonitorDomainBlockThresholdCallback)(qemuMonitorPtr mon,
                                                        unsigned long long excess,
                                                        void *opaque);
 
+typedef int (*qemuMonitorSEVMeasurementCallback)(qemuMonitorPtr mon,
+                                                 virDomainObjPtr vm,
+                                                 const char* sev_measurement,
+                                                  void *opaque);
 
 typedef struct _qemuMonitorCallbacks qemuMonitorCallbacks;
 typedef qemuMonitorCallbacks *qemuMonitorCallbacksPtr;
@@ -279,6 +283,7 @@ struct _qemuMonitorCallbacks {
     qemuMonitorDomainMigrationPassCallback domainMigrationPass;
     qemuMonitorDomainAcpiOstInfoCallback domainAcpiOstInfo;
     qemuMonitorDomainBlockThresholdCallback domainBlockThreshold;
+    qemuMonitorSEVMeasurementCallback domainGuestSEVMeasurement;
 };
 
 char *qemuMonitorEscapeArg(const char *in);
@@ -407,6 +412,8 @@ int qemuMonitorEmitBlockThreshold(qemuMonitorPtr mon,
                                   const char *nodename,
                                   unsigned long long threshold,
                                   unsigned long long excess);
+
+int qemuMonitorEmitSEVMeasurement(qemuMonitorPtr mon, const char* sev_measurement);
 
 int qemuMonitorStartCPUs(qemuMonitorPtr mon,
                          virConnectPtr conn);

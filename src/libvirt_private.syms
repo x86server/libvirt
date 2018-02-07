@@ -612,6 +612,7 @@ virDomainEventRebootNewFromDom;
 virDomainEventRebootNewFromObj;
 virDomainEventRTCChangeNewFromDom;
 virDomainEventRTCChangeNewFromObj;
+virDomainEventSEVMeasurementNewFromObj;
 virDomainEventStateDeregister;
 virDomainEventStateRegister;
 virDomainEventStateRegisterID;

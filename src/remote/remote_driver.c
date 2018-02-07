@@ -401,6 +401,11 @@ remoteDomainBuildEventBlockThreshold(virNetClientProgramPtr prog,
                                      void *evdata, void *opaque);
 
 static void
+remoteDomainBuildEventSevMeasurement(virNetClientProgramPtr prog ATTRIBUTE_UNUSED,
+                                     virNetClientPtr client ATTRIBUTE_UNUSED,
+                                     void *evdata, void *opaque);
+
+static void
 remoteConnectNotifyEventConnectionClosed(virNetClientProgramPtr prog ATTRIBUTE_UNUSED,
                                          virNetClientPtr client ATTRIBUTE_UNUSED,
                                          void *evdata, void *opaque);
@@ -611,6 +616,10 @@ static virNetClientProgramEvent remoteEvents[] = {
       remoteDomainBuildEventBlockThreshold,
       sizeof(remote_domain_event_block_threshold_msg),
       (xdrproc_t)xdr_remote_domain_event_block_threshold_msg },
+    { REMOTE_PROC_DOMAIN_EVENT_SEV_MEASUREMENT,
+      remoteDomainBuildEventSevMeasurement,
+      sizeof(remote_domain_event_sev_measurement_msg),
+      (xdrproc_t)xdr_remote_domain_event_sev_measurement_msg },
 };
 
 static void
@@ -5603,6 +5612,28 @@ remoteDomainBuildEventBlockThreshold(virNetClientProgramPtr prog ATTRIBUTE_UNUSE
     event = virDomainEventBlockThresholdNewFromDom(dom, msg->dev,
                                                    msg->path ? *msg->path : NULL,
                                                    msg->threshold, msg->excess);
+
+    virObjectUnref(dom);
+
+    remoteEventQueue(priv, event, msg->callbackID);
+}
+
+
+static void
+remoteDomainBuildEventSevMeasurement(virNetClientProgramPtr prog ATTRIBUTE_UNUSED,
+                                     virNetClientPtr client ATTRIBUTE_UNUSED,
+                                     void *evdata, void *opaque)
+{
+    virConnectPtr conn = opaque;
+    remote_domain_event_sev_measurement_msg *msg = evdata;
+    struct private_data *priv = conn->privateData;
+    virDomainPtr dom;
+    virObjectEventPtr event = NULL;
+
+    if (!(dom = get_nonnull_domain(conn, msg->dom)))
+        return;
+
+    event = virDomainEventSEVMeasurementNewFromDom(dom, msg->sev_measurement);
 
     virObjectUnref(dom);
 

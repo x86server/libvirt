@@ -1690,6 +1690,26 @@ qemuProcessHandleMigrationPass(qemuMonitorPtr mon ATTRIBUTE_UNUSED,
     return 0;
 }
 
+static int
+qemuProcessHandleGuestSEVMeasurement(qemuMonitorPtr mon ATTRIBUTE_UNUSED,
+                                     virDomainObjPtr vm,
+                                     const char* sev_measurement,
+                                     void *opaque)
+{
+
+    virQEMUDriverPtr driver = opaque;
+    virObjectEventPtr event = NULL;
+
+    virObjectLock(vm);
+
+    event = virDomainEventSEVMeasurementNewFromObj(vm, sev_measurement);
+
+    virObjectUnlock(vm);
+
+    qemuDomainEventQueue(driver, event);
+
+    return 0;
+}
 
 static qemuMonitorCallbacks monitorCallbacks = {
     .eofNotify = qemuProcessHandleMonitorEOF,
@@ -1719,6 +1739,7 @@ static qemuMonitorCallbacks monitorCallbacks = {
     .domainMigrationPass = qemuProcessHandleMigrationPass,
     .domainAcpiOstInfo = qemuProcessHandleAcpiOstInfo,
     .domainBlockThreshold = qemuProcessHandleBlockThreshold,
+    .domainGuestSEVMeasurement = qemuProcessHandleGuestSEVMeasurement,
 };
 
 static void

@@ -259,6 +259,13 @@ virDomainEventBlockThresholdNewFromDom(virDomainPtr dom,
                                        unsigned long long threshold,
                                        unsigned long long excess);
 
+virObjectEventPtr
+virDomainEventSEVMeasurementNewFromObj(virDomainObjPtr obj,
+                                  const char* sev_measurement);
+
+virObjectEventPtr
+virDomainEventSEVMeasurementNewFromDom(virDomainPtr dom,
+                                  const char* sev_measurement);
 int
 virDomainEventStateRegister(virConnectPtr conn,
                             virObjectEventStatePtr state,

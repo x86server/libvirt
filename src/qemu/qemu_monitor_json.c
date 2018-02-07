@@ -65,6 +65,7 @@ static void qemuMonitorJSONHandlePowerdown(qemuMonitorPtr mon, virJSONValuePtr d
 static void qemuMonitorJSONHandleStop(qemuMonitorPtr mon, virJSONValuePtr data);
 static void qemuMonitorJSONHandleResume(qemuMonitorPtr mon, virJSONValuePtr data);
 static void qemuMonitorJSONHandleRTCChange(qemuMonitorPtr mon, virJSONValuePtr data);
+static void qemuMonitorJSONHandleSEVMeasurement(qemuMonitorPtr mon, virJSONValuePtr data);
 static void qemuMonitorJSONHandleWatchdog(qemuMonitorPtr mon, virJSONValuePtr data);
 static void qemuMonitorJSONHandleIOError(qemuMonitorPtr mon, virJSONValuePtr data);
 static void qemuMonitorJSONHandleVNCConnect(qemuMonitorPtr mon, virJSONValuePtr data);
@@ -114,6 +115,7 @@ static qemuEventHandler eventHandlers[] = {
     { "RESET", qemuMonitorJSONHandleReset, },
     { "RESUME", qemuMonitorJSONHandleResume, },
     { "RTC_CHANGE", qemuMonitorJSONHandleRTCChange, },
+    { "SEV_MEASUREMENT", qemuMonitorJSONHandleSEVMeasurement, },
     { "SHUTDOWN", qemuMonitorJSONHandleShutdown, },
     { "SPICE_CONNECTED", qemuMonitorJSONHandleSPICEConnect, },
     { "SPICE_DISCONNECTED", qemuMonitorJSONHandleSPICEDisconnect, },
@@ -204,6 +206,7 @@ qemuMonitorJSONIOProcessLine(qemuMonitorPtr mon,
     if (virJSONValueObjectHasKey(obj, "QMP") == 1) {
         ret = 0;
     } else if (virJSONValueObjectHasKey(obj, "event") == 1) {
+
         PROBE(QEMU_MONITOR_RECV_EVENT,
               "mon=%p event=%s", mon, line);
         ret = qemuMonitorJSONIOProcessEvent(mon, obj);
@@ -611,6 +614,15 @@ static void qemuMonitorJSONHandleRTCChange(qemuMonitorPtr mon, virJSONValuePtr d
         offset = 0;
     }
     qemuMonitorEmitRTCChange(mon, offset);
+}
+
+static void qemuMonitorJSONHandleSEVMeasurement(qemuMonitorPtr mon, virJSONValuePtr data)
+{
+    const char* sev_measurement;
+    if ((sev_measurement = virJSONValueObjectGetString(data, "value")) == NULL) {
+        VIR_WARN("missing sev measurement value");
+    }else
+        qemuMonitorEmitSEVMeasurement(mon, sev_measurement);
 }
 
 VIR_ENUM_DECL(qemuMonitorWatchdogAction)

@@ -1667,6 +1667,19 @@ qemuMonitorEmitBlockThreshold(qemuMonitorPtr mon,
 
 
 int
+qemuMonitorEmitSEVMeasurement(qemuMonitorPtr mon, const char* sev_measurement)
+{
+    int ret = -1;
+
+    VIR_DEBUG("mon=%p, sev_measurement=%s", mon, sev_measurement);
+
+    QEMU_MONITOR_CALLBACK(mon, ret, domainGuestSEVMeasurement, mon->vm, sev_measurement);
+
+    return ret;
+}
+
+
+int
 qemuMonitorSetCapabilities(qemuMonitorPtr mon)
 {
     QEMU_CHECK_MONITOR(mon);

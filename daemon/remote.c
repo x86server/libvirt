@@ -1341,6 +1341,36 @@ remoteRelayDomainEventBlockThreshold(virConnectPtr conn,
     return -1;
 }
 
+static int
+remoteRelayDomainEventSEVMeasurement(virConnectPtr conn,
+                                     virDomainPtr dom,
+                                     const char* sev_measurement,
+                                     void *opaque)
+{
+    daemonClientEventCallbackPtr callback = opaque;
+    remote_domain_event_sev_measurement_msg data;
+
+    if (callback->callbackID < 0 ||
+        !remoteRelayDomainEventCheckACL(callback->client, conn, dom))
+        return -1;
+
+    VIR_DEBUG("Relaying domain SEV_MEASUREMENT event %s %d %s, callback %d legacy %d",
+              dom->name, dom->id, sev_measurement,
+              callback->callbackID, callback->legacy);
+
+    /* build return data */
+    memset(&data, 0, sizeof(data));
+    data.callbackID = callback->callbackID;
+    make_nonnull_domain(&data.dom, dom);
+    if (VIR_STRDUP(data.sev_measurement, sev_measurement) < 0)
+        return -1;
+
+    remoteDispatchObjectEventSend(callback->client, remoteProgram,
+                                      REMOTE_PROC_DOMAIN_EVENT_SEV_MEASUREMENT,
+                                      (xdrproc_t)xdr_remote_domain_event_sev_measurement_msg, &data);
+
+    return 0;
+}
 
 static virConnectDomainEventGenericCallback domainEventCallbacks[] = {
     VIR_DOMAIN_EVENT_CALLBACK(remoteRelayDomainEventLifecycle),
@@ -1368,6 +1398,7 @@ static virConnectDomainEventGenericCallback domainEventCallbacks[] = {
     VIR_DOMAIN_EVENT_CALLBACK(remoteRelayDomainEventDeviceRemovalFailed),
     VIR_DOMAIN_EVENT_CALLBACK(remoteRelayDomainEventMetadataChange),
     VIR_DOMAIN_EVENT_CALLBACK(remoteRelayDomainEventBlockThreshold),
+    VIR_DOMAIN_EVENT_CALLBACK(remoteRelayDomainEventSEVMeasurement),
 };
 
 verify(ARRAY_CARDINALITY(domainEventCallbacks) == VIR_DOMAIN_EVENT_ID_LAST);

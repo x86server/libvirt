@@ -4363,6 +4363,20 @@ typedef void (*virConnectDomainEventBlockThresholdCallback)(virConnectPtr conn,
                                                             unsigned long long excess,
                                                             void *opaque);
 
+/*
+* virConnectDomainEventSEVMeasurementCallback:
+ * @conn: connection object
+ * @dom: domain on which the event occurred
+ * @sev_measuremnt: the domain sev measurement
+ * @opaque: application specified data
+ *
+ * The callback signature to use when registering for an event of type
+ * VIR_DOMAIN_EVENT_ID_RTC_CHANGE with virConnectDomainEventRegisterAny()
+*/
+typedef void (*virConnectDomainEventSEVMeasurementCallback)(virConnectPtr conn,
+                                                       virDomainPtr dom,
+                                                       const char* sev_measuremnt,
+                                                       void *opaque);
 /**
  * VIR_DOMAIN_EVENT_CALLBACK:
  *
@@ -4405,6 +4419,7 @@ typedef enum {
     VIR_DOMAIN_EVENT_ID_DEVICE_REMOVAL_FAILED = 22, /* virConnectDomainEventDeviceRemovalFailedCallback */
     VIR_DOMAIN_EVENT_ID_METADATA_CHANGE = 23, /* virConnectDomainEventMetadataChangeCallback */
     VIR_DOMAIN_EVENT_ID_BLOCK_THRESHOLD = 24, /* virConnectDomainEventBlockThresholdCallback */
+    VIR_DOMAIN_EVENT_ID_SEV_MEASUREMENT = 25, /* virConnectDomainEventSEVMeasurementCallback  */
 
 # ifdef VIR_ENUM_SENTINELS
     VIR_DOMAIN_EVENT_ID_LAST
