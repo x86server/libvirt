@@ -12095,3 +12095,54 @@ int virDomainSetLifecycleAction(virDomainPtr domain,
     virDispatchError(domain->conn);
     return -1;
 }
+
+/**
+ * virDomainSetSevVmSecret:
+ * @domain: pointer to domain object
+ * @gpa: physical address
+ * @hdr: secret header
+ * @data: secret data
+ * @flags: currently unused, pass 0
+ *
+ * Send a secret to guest VM
+ * Returns 0 in case of success, -1 in case of failure.
+ */
+int
+virDomainSetSevVmSecret(virDomainPtr domain,
+                         long long gpa,
+                         const char *  hdr,
+                         const char *  data,
+                         unsigned int flags)
+{
+    virConnectPtr conn;
+    VIR_DOMAIN_DEBUG(domain, "gpa=%lld, hdr=%s data=%s, flags=0x%x",
+                     gpa, hdr, data, flags);
+
+    virResetLastError();
+
+    virCheckDomainReturn(domain, -1);
+    conn = domain->conn;
+
+    virCheckNonZeroArgGoto(gpa, error);
+    virCheckNonNullArgGoto(hdr, error);
+    virCheckNonNullArgGoto(data, error);
+    virCheckReadOnlyGoto(conn->flags, error);
+
+    if (conn->driver->domainSetSevVmSecret) {
+        int ret;
+        ret = conn->driver->domainSetSevVmSecret(domain,
+                                                  gpa,
+                                                  hdr,
+                                                  data,
+                                                  flags);
+        if (ret < 0)
+            goto error;
+        return ret;
+    }
+
+    virReportUnsupportedError();
+
+ error:
+    virDispatchError(domain->conn);
+    return -1;
+}

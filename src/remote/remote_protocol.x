@@ -3446,6 +3446,14 @@ struct remote_domain_event_sev_measurement_msg {
     remote_nonnull_string sev_measurement;
 };
 
+struct remote_domain_set_sev_vm_secret_args {
+    remote_nonnull_domain dom;
+    hyper gpa;
+    remote_nonnull_string hdr;
+    remote_nonnull_string data;
+    unsigned int flags;
+};
+
 /*----- Protocol. -----*/
 
 /* Define the program number, protocol version and procedure numbers here. */
@@ -6128,10 +6136,15 @@ enum remote_procedure {
      */
     REMOTE_PROC_DOMAIN_SET_LIFECYCLE_ACTION = 390,
 
-
     /**
      * @generate: both
      * @acl: none
      */
-   REMOTE_PROC_DOMAIN_EVENT_SEV_MEASUREMENT = 391
+   REMOTE_PROC_DOMAIN_EVENT_SEV_MEASUREMENT = 391,
+
+    /**
+     * @generate: both
+     * @acl: domain:send_signal
+     */
+   REMOTE_PROC_DOMAIN_SET_SEV_VM_SECRET = 392
 };

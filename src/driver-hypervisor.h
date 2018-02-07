@@ -1283,6 +1283,12 @@ typedef int
                                   unsigned int action,
                                   unsigned int flags);
 
+typedef int
+(*virDrvDomainSetSevVmSecret)(virDomainPtr dommain,
+                               long long gpa,
+                               const char *hdr,
+                               const char *data,
+                               unsigned int flags);
 
 typedef struct _virHypervisorDriver virHypervisorDriver;
 typedef virHypervisorDriver *virHypervisorDriverPtr;
@@ -1528,6 +1534,7 @@ struct _virHypervisorDriver {
     virDrvDomainSetVcpu domainSetVcpu;
     virDrvDomainSetBlockThreshold domainSetBlockThreshold;
     virDrvDomainSetLifecycleAction domainSetLifecycleAction;
+    virDrvDomainSetSevVmSecret domainSetSevVmSecret;
 };
 
 

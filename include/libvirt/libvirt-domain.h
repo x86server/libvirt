@@ -4771,4 +4771,11 @@ int virDomainSetLifecycleAction(virDomainPtr domain,
                                 unsigned int action,
                                 unsigned int flags);
 
+int
+virDomainSetSevVmSecret(virDomainPtr domain,
+                         long long gpa,
+                         const char *  hdr,
+                         const char *  data,
+                         unsigned int flags);
+
 #endif /* __VIR_LIBVIRT_DOMAIN_H__ */

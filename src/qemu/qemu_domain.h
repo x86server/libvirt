@@ -233,6 +233,14 @@ struct _qemuDomainSecretInfo {
     } s;
 };
 
+typedef struct _qemuDomainSEVSecretInfo qemuDomainSEVSecretInfo;
+typedef qemuDomainSEVSecretInfo *qemuDomainSEVSecretInfoPtr;
+struct _qemuDomainSEVSecretInfo {
+    unsigned long long gpa;
+    char *hdr;
+    char *data;
+};
+
 typedef struct _qemuDomainObjPrivate qemuDomainObjPrivate;
 typedef qemuDomainObjPrivate *qemuDomainObjPrivatePtr;
 struct _qemuDomainObjPrivate {

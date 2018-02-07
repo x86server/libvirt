@@ -10737,3 +10737,28 @@ qemuBuildHotpluggableCPUProps(const virDomainVcpuDef *vcpu)
     virJSONValueFree(ret);
     return NULL;
 }
+
+/**
+ * qemuBuildSEVSecretInfoProps:
+ * @secinfo: pointer to the sev secret info object
+ * @props: json properties to return
+ *
+ * Build the JSON properties for the sev secret info type.
+ *
+ * Returns 0 on success with the filled in JSON property; otherwise,
+ * returns -1 on failure error message set.
+ */
+int
+qemuBuildSEVSecretInfoProps(qemuDomainSEVSecretInfoPtr sev_sec_info,
+                         virJSONValuePtr *propsret)
+{
+
+    if (virJSONValueObjectCreate(propsret,
+                                 "U:gpa",  sev_sec_info->gpa,
+                                 "s:hdr",  sev_sec_info->hdr,
+                                 "s:data", sev_sec_info->data,
+                                 NULL) < 0)
+        return -1;
+    else
+        return 0;
+}

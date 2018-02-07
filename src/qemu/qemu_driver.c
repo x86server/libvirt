@@ -21130,6 +21130,73 @@ qemuDomainSetLifecycleAction(virDomainPtr dom,
     return ret;
 }
 
+static int
+qemuDomainSendSevVmSecret(virDomainPtr dom, long long gpa, const char *hdr, const char *data, unsigned int flags)
+{
+    virQEMUDriverPtr driver = dom->conn->privateData;
+    virDomainObjPtr vm = NULL;
+    qemuDomainSEVSecretInfo sev_sec_info;
+    virJSONValuePtr sev_secret_prop = NULL;
+    virCapsPtr caps = NULL;
+    int ret = -1;
+    int rv;
+
+    virCheckFlags(0, -1);
+
+    if (!(caps = virQEMUDriverGetCapabilities(driver, false)))
+        goto cleanup;
+
+    if (!(vm = qemuDomObjFromDomain(dom)))
+        goto cleanup;
+
+    if(caps->host.host_pdh == NULL || caps->host.host_pdh[0] == '\0' || vm->def->dh_key == NULL ){
+        return 0;
+    }
+
+   if (qemuDomainObjBeginJob(driver, vm, QEMU_JOB_MODIFY) < 0)
+        goto cleanup;
+
+    if (!virDomainObjIsActive(vm)) {
+        virReportError(VIR_ERR_OPERATION_INVALID, "%s",
+                       _("domain is not running"));
+       goto endjob;
+    }
+
+    if (qemuDomainObjEnterMonitorAsync(driver, vm, QEMU_ASYNC_JOB_NONE) < 0)
+        goto endjob;
+
+    VIR_DEBUG("inject sev-launch-secret to VM");
+
+    sev_sec_info.gpa  = gpa;
+    ignore_value(VIR_STRDUP(sev_sec_info.hdr, hdr));
+    ignore_value(VIR_STRDUP(sev_sec_info.data, data));
+
+    if(qemuBuildSEVSecretInfoProps(&sev_sec_info, &sev_secret_prop) < 0)
+        goto endjob;
+
+    if (sev_secret_prop) {
+        rv = qemuMonitorAddObject(QEMU_DOMAIN_PRIVATE(vm)->mon, "sev-launch-secret", "sev-launch-secret",
+                                      sev_secret_prop);
+        sev_secret_prop = NULL;
+        if (rv < 0){
+            virReportError(VIR_ERR_INTERNAL_ERROR,"send SEV secret info failed");
+            goto endjob;
+        }
+    }
+
+    if (qemuDomainObjExitMonitor(driver, vm) < 0)
+        goto endjob;
+
+    ret = 0;
+
+ endjob:
+    qemuDomainObjEndJob(driver, vm);
+
+ cleanup:
+    virDomainObjEndAPI(&vm);
+
+    return ret;
+}
 
 static virHypervisorDriver qemuHypervisorDriver = {
     .name = QEMU_DRIVER_NAME,
@@ -21350,6 +21417,7 @@ static virHypervisorDriver qemuHypervisorDriver = {
     .domainSetVcpu = qemuDomainSetVcpu, /* 3.1.0 */
     .domainSetBlockThreshold = qemuDomainSetBlockThreshold, /* 3.2.0 */
     .domainSetLifecycleAction = qemuDomainSetLifecycleAction, /* 3.9.0 */
+    .domainSetSevVmSecret = qemuDomainSendSevVmSecret /* 4.1.0 */
 };
 
 

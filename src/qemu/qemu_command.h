@@ -59,6 +59,10 @@ virCommandPtr qemuBuildCommandLine(virQEMUDriverPtr driver,
 int qemuBuildSecretInfoProps(qemuDomainSecretInfoPtr secinfo,
                              virJSONValuePtr *propsret);
 
+int
+qemuBuildSEVSecretInfoProps(qemuDomainSEVSecretInfoPtr sev_sec_info,
+                         virJSONValuePtr *propsret);
+
 /* Generate the object properties for a tls-creds-x509 */
 int qemuBuildTLSx509BackendProps(const char *tlspath,
                                  bool isListen,
