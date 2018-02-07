@@ -991,6 +991,18 @@ myDomainEventDeviceRemovalFailedCallback(virConnectPtr conn ATTRIBUTE_UNUSED,
     return 0;
 }
 
+static int
+myDomainEventSEVMeasurementeCallback(virConnectPtr conn ATTRIBUTE_UNUSED,
+                                     virDomainPtr dom,
+                                     const char* sev_measurement,
+                                     void *opaque ATTRIBUTE_UNUSED)
+{
+    printf("%s EVENT: Domain %s(%d) sev_measurement %s\n",
+           __func__, virDomainGetName(dom), virDomainGetID(dom),
+           sev_measurement);
+
+    return 0;
+}
 
 static const char *
 metadataTypeToStr(int status)
@@ -1082,6 +1094,7 @@ struct domainEventData domainEvents[] = {
     DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_DEVICE_REMOVAL_FAILED, myDomainEventDeviceRemovalFailedCallback),
     DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_METADATA_CHANGE, myDomainEventMetadataChangeCallback),
     DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_BLOCK_THRESHOLD, myDomainEventBlockThresholdCallback),
+    DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_SEV_MEASUREMENT, myDomainEventSEVMeasurementeCallback),
 };
 
 struct storagePoolEventData {

@@ -13258,6 +13258,20 @@ virshEventBlockThresholdPrint(virConnectPtr conn ATTRIBUTE_UNUSED,
     virshEventPrint(opaque, &buf);
 }
 
+static void
+virshEventSEVMeasurementPrint(virConnectPtr conn ATTRIBUTE_UNUSED,
+                              virDomainPtr dom,
+                              const char* sev_measuremnt,
+                              void *opaque)
+{
+    virBuffer buf = VIR_BUFFER_INITIALIZER;
+
+    virBufferAsprintf(&buf, _("event 'sev-measurement' for domain %s: %s\n"),
+                      virDomainGetName(dom),
+                      sev_measuremnt);
+    virshEventPrint(opaque, &buf);
+}
+
 
 static vshEventCallback vshEventCallbacks[] = {
     { "lifecycle",
@@ -13308,6 +13322,8 @@ static vshEventCallback vshEventCallbacks[] = {
       VIR_DOMAIN_EVENT_CALLBACK(virshEventMetadataChangePrint), },
     { "block-threshold",
       VIR_DOMAIN_EVENT_CALLBACK(virshEventBlockThresholdPrint), },
+    { "sev-measurement",
+      VIR_DOMAIN_EVENT_CALLBACK(virshEventSEVMeasurementPrint), },
 };
 verify(VIR_DOMAIN_EVENT_ID_LAST == ARRAY_CARDINALITY(vshEventCallbacks));
 
