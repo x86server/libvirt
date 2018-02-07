@@ -13866,6 +13866,70 @@ cmdDomFSInfo(vshControl *ctl, const vshCmd *cmd)
     return ret >= 0;
 }
 
+/*
+ * "send-sev-vm-secret" command
+ */
+static const vshCmdInfo info_send_sev_vm_secret[] = {
+    {.name = "help",
+     .data = N_("Send secret blob to sev vm")
+    },
+    {.name = "desc",
+     .data = N_("Send secret blob to sev vm")
+    },
+    {.name = NULL}
+};
+
+static const vshCmdOptDef opts_send_sev_vm_secret[] = {
+    VIRSH_COMMON_OPT_DOMAIN_FULL(0),
+    {.name = "gpa",
+     .type = VSH_OT_DATA,
+     .flags = VSH_OFLAG_REQ,
+     .help = N_("physical address in guest")
+    },
+    {.name = "hdr",
+     .type = VSH_OT_DATA,
+     .flags = VSH_OFLAG_REQ,
+     .help = N_("the header of secret blob")
+    },
+    {.name = "data",
+     .type = VSH_OT_DATA,
+     .flags = VSH_OFLAG_REQ,
+     .help = N_("the data of secret blob")
+    },
+    {.name = NULL}
+};
+
+static bool
+cmdSendSevVmSecrete(vshControl *ctl, const vshCmd *cmd)
+{
+    virDomainPtr dom;
+    bool ret = false;
+    long long gpa_value;
+    const char * hdr;
+    const char * data;
+
+    if (!(dom = virshCommandOptDomain(ctl, cmd, NULL)))
+        return false;
+
+    if (vshCommandOptLongLong(ctl, cmd, "gpa", &gpa_value) < 0)
+        goto cleanup;
+
+    if (vshCommandOptStringReq(ctl, cmd, "hdr", &hdr) < 0)
+        goto cleanup;
+
+    if (vshCommandOptStringReq(ctl, cmd, "data", &data) < 0)
+        goto cleanup;
+printf("--gpa_value %llu, hdr %s, data %s---\n", gpa_value, hdr, data);
+    if (virDomainSetSevVmSecret(dom, gpa_value, hdr, data, 0) < 0)
+      goto cleanup;
+
+    ret = true;
+
+ cleanup:
+    virshDomainFree(dom);
+    return ret;
+}
+
 const vshCmdDef domManagementCmds[] = {
     {.name = "attach-device",
      .handler = cmdAttachDevice,
@@ -14479,6 +14543,12 @@ const vshCmdDef domManagementCmds[] = {
      .handler = cmdDomblkthreshold,
      .opts = opts_domblkthreshold,
      .info = info_domblkthreshold,
+     .flags = 0
+    },
+    {.name = "send-sev-vm-secret",
+     .handler = cmdSendSevVmSecrete,
+     .opts = opts_send_sev_vm_secret,
+     .info = info_send_sev_vm_secret,
      .flags = 0
     },
     {.name = NULL}
