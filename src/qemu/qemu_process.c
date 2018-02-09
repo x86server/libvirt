@@ -5775,6 +5775,31 @@ qemuProcessPrepareHost(virQEMUDriverPtr driver,
 }
 
 
+static int
+qemuProcessEmitSevVmMeasurement(virQEMUDriverPtr driver, virDomainObjPtr vm, qemuDomainAsyncJob asyncJob)
+{
+    char * sev_measurement;
+
+    if (qemuDomainObjEnterMonitorAsync(driver, vm, asyncJob) < 0)
+        return -1;
+
+    VIR_DEBUG("query VM sev_measurement and emit to client");
+    if((sev_measurement = qemuMonitorGetSevMeasurement(QEMU_DOMAIN_PRIVATE(vm)->mon)) == NULL)
+        return -1;
+
+virReportError(VIR_ERR_INTERNAL_ERROR,
+                           _("qemuProcessEmitSevVmMeasurement %s"), sev_measurement);
+
+    qemuMonitorEmitSEVMeasurement(QEMU_DOMAIN_PRIVATE(vm)->mon, sev_measurement);
+    VIR_FREE(sev_measurement);
+
+    if (qemuDomainObjExitMonitor(driver, vm) < 0)
+        return -1;
+
+    return 0;
+}
+
+
 /**
  * qemuProcessLaunch:
  *
@@ -6009,15 +6034,8 @@ qemuProcessLaunch(virConnectPtr conn,
         goto cleanup;
 
    if(caps->host.host_pdh != NULL && caps->host.host_pdh[0] != '\0' && vm->def->dh_key != NULL ){
-        if (qemuDomainObjEnterMonitorAsync(driver, vm, asyncJob) < 0)
-            goto cleanup;
-
-        VIR_DEBUG("query VM sev_measurement and emit to client");
-        if(qemuMonitorGetSevMeasurement(QEMU_DOMAIN_PRIVATE(vm)->mon) < 0)
-            goto cleanup;
-
-        if (qemuDomainObjExitMonitor(driver, vm) < 0)
-            goto cleanup;
+       if(qemuProcessEmitSevVmMeasurement(driver,vm, asyncJob) < 0 )
+           goto cleanup;
     }
 
     if (qemuConnectAgent(driver, vm) < 0)

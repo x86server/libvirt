@@ -8529,7 +8529,8 @@ static virHypervisorDriver hypervisor_driver = {
     .domainSetVcpu = remoteDomainSetVcpu, /* 3.1.0 */
     .domainSetBlockThreshold = remoteDomainSetBlockThreshold, /* 3.2.0 */
     .domainSetLifecycleAction = remoteDomainSetLifecycleAction, /* 3.9.0 */
-    .domainSetSevVmSecret = remoteDomainSetSevVmSecret /* 4.1.0 */
+    .domainSetSevVmSecret = remoteDomainSetSevVmSecret, /* 4.1.0 */
+    .domainGetSevVmMeasurement = remoteDomainGetSevVmMeasurement, /* 4.1.0 */
 };
 
 static virNetworkDriver network_driver = {

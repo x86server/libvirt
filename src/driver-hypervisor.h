@@ -1290,6 +1290,10 @@ typedef int
                                const char *data,
                                unsigned int flags);
 
+typedef char *
+(*virDrvDomainGetSevVmMeasurement)(virDomainPtr dommain,
+                                   unsigned int flags);
+
 typedef struct _virHypervisorDriver virHypervisorDriver;
 typedef virHypervisorDriver *virHypervisorDriverPtr;
 
@@ -1535,6 +1539,7 @@ struct _virHypervisorDriver {
     virDrvDomainSetBlockThreshold domainSetBlockThreshold;
     virDrvDomainSetLifecycleAction domainSetLifecycleAction;
     virDrvDomainSetSevVmSecret domainSetSevVmSecret;
+    virDrvDomainGetSevVmMeasurement domainGetSevVmMeasurement;
 };
 
 

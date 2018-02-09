@@ -3454,6 +3454,15 @@ struct remote_domain_set_sev_vm_secret_args {
     unsigned int flags;
 };
 
+struct remote_domain_get_sev_vm_measurement_args {
+    remote_nonnull_domain dom;
+    unsigned int flags;
+};
+
+struct remote_domain_get_sev_vm_measurement_ret {
+    remote_nonnull_string sev_measurement;
+};
+
 /*----- Protocol. -----*/
 
 /* Define the program number, protocol version and procedure numbers here. */
@@ -6146,5 +6155,11 @@ enum remote_procedure {
      * @generate: both
      * @acl: domain:send_signal
      */
-   REMOTE_PROC_DOMAIN_SET_SEV_VM_SECRET = 392
+   REMOTE_PROC_DOMAIN_SET_SEV_VM_SECRET = 392,
+
+    /**
+     * @generate: both
+     * @acl: domain:read
+     */
+   REMOTE_PROC_DOMAIN_GET_SEV_VM_MEASUREMENT = 393
 };

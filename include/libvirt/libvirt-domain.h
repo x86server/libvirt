@@ -4778,4 +4778,7 @@ virDomainSetSevVmSecret(virDomainPtr domain,
                          const char *  data,
                          unsigned int flags);
 
+char*
+virDomainGetSevVmMeasurement(virDomainPtr domain,
+                             unsigned int flags);
 #endif /* __VIR_LIBVIRT_DOMAIN_H__ */

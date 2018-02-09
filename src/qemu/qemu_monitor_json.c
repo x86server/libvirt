@@ -7795,17 +7795,17 @@ qemuMonitorJSONSetWatchdogAction(qemuMonitorPtr mon,
     return ret;
 }
 
-int
+char *
 qemuMonitorJSONGetSevMeasurement(qemuMonitorPtr mon)
 {
-    int ret = -1;
     const char *sev_measurement;
+    char * dup_sev_measurement = NULL;
     virJSONValuePtr cmd;
     virJSONValuePtr reply = NULL;
     virJSONValuePtr data;
 
     if (!(cmd = qemuMonitorJSONMakeCommand("query-sevmeasurement", NULL)))
-        return -1;
+         return NULL;
 
     if (qemuMonitorJSONCommand(mon, cmd, &reply) < 0)
         goto cleanup;
@@ -7816,16 +7816,17 @@ qemuMonitorJSONGetSevMeasurement(qemuMonitorPtr mon)
     data = virJSONValueObjectGetObject(reply, "return");
 
     if ((sev_measurement = virJSONValueObjectGetString(data, "sevmeasurement"))) {
-        VIR_DEBUG("Got VM sev_measurment %s", sev_measurement);
-        qemuMonitorEmitSEVMeasurement(mon, sev_measurement);
+        VIR_DEBUG("VM sev_measurment %s", sev_measurement);
+        if(VIR_STRDUP(dup_sev_measurement, sev_measurement) < 0){
+            dup_sev_measurement = NULL;
+            goto cleanup;
+        }
     } else {
         VIR_WARN("missing sev measurement value");
     }
 
-    ret = 0;
-
- cleanup:
+cleanup:
     virJSONValueFree(cmd);
     virJSONValueFree(reply);
-    return ret;
+    return dup_sev_measurement;
 }
