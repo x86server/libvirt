@@ -13919,7 +13919,7 @@ cmdSendSevVmSecrete(vshControl *ctl, const vshCmd *cmd)
 
     if (vshCommandOptStringReq(ctl, cmd, "data", &data) < 0)
         goto cleanup;
-printf("--gpa_value %llu, hdr %s, data %s---\n", gpa_value, hdr, data);
+
     if (virDomainSetSevVmSecret(dom, gpa_value, hdr, data, 0) < 0)
       goto cleanup;
 
@@ -13929,6 +13929,48 @@ printf("--gpa_value %llu, hdr %s, data %s---\n", gpa_value, hdr, data);
     virshDomainFree(dom);
     return ret;
 }
+
+/*
+ * "get-sev-vm-measurement" command
+ */
+static const vshCmdInfo info_get_sev_vm_measurement[] = {
+    {.name = "help",
+     .data = N_("get domain sev_measurement")
+    },
+    {.name = "desc",
+     .data = N_("get domain sev_measurement.")
+    },
+    {.name = NULL}
+};
+
+static const vshCmdOptDef opts_get_sev_vm_measurement[] = {
+    VIRSH_COMMON_OPT_DOMAIN_FULL(0),
+    {.name = NULL}
+};
+
+static bool
+cmdGetSevVmMeasurement(vshControl *ctl, const vshCmd *cmd)
+{
+    virDomainPtr dom;
+    bool ret = false;
+    char *sev_measurement = NULL;
+
+    if (!(dom = virshCommandOptDomain(ctl, cmd, NULL)))
+        return false;
+
+    sev_measurement = virDomainGetSevVmMeasurement(dom, 0);
+    if (!sev_measurement)
+        goto cleanup;
+
+    vshPrint(ctl, "sev_measuremt: %s", sev_measurement);
+    ret = true;
+
+ cleanup:
+    VIR_FREE(sev_measurement);
+    virshDomainFree(dom);
+    return ret;
+}
+
 
 const vshCmdDef domManagementCmds[] = {
     {.name = "attach-device",
@@ -14549,6 +14591,12 @@ const vshCmdDef domManagementCmds[] = {
      .handler = cmdSendSevVmSecrete,
      .opts = opts_send_sev_vm_secret,
      .info = info_send_sev_vm_secret,
+     .flags = 0
+    },
+    {.name = "get-sev-vm-measurement",
+     .handler = cmdGetSevVmMeasurement,
+     .opts = opts_get_sev_vm_measurement,
+     .info = info_get_sev_vm_measurement,
      .flags = 0
     },
     {.name = NULL}
