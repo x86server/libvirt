@@ -7883,3 +7883,39 @@ qemuMonitorJSONSetWatchdogAction(qemuMonitorPtr mon,
     virJSONValueFree(reply);
     return ret;
 }
+
+char *
+qemuMonitorJSONGetSevMeasurement(qemuMonitorPtr mon)
+{
+    const char *sev_measurement;
+    char * dup_sev_measurement = NULL;
+    virJSONValuePtr cmd;
+    virJSONValuePtr reply = NULL;
+    virJSONValuePtr data;
+
+    if (!(cmd = qemuMonitorJSONMakeCommand("query-sev-launch-measure", NULL)))
+         return NULL;
+
+    if (qemuMonitorJSONCommand(mon, cmd, &reply) < 0)
+        goto cleanup;
+
+    if (qemuMonitorJSONCheckError(cmd, reply) < 0)
+        goto cleanup;
+
+    data = virJSONValueObjectGetObject(reply, "return");
+
+    if ((sev_measurement = virJSONValueObjectGetString(data, "data"))) {
+        VIR_DEBUG("VM sev_measurment %s", sev_measurement);
+        if(VIR_STRDUP(dup_sev_measurement, sev_measurement) < 0){
+            dup_sev_measurement = NULL;
+            goto cleanup;
+        }
+    } else {
+        VIR_WARN("missing sev measurement value");
+    }
+
+cleanup:
+    virJSONValueFree(cmd);
+    virJSONValueFree(reply);
+    return dup_sev_measurement;
+}
