@@ -21259,6 +21259,52 @@ qemuDomainSetLifecycleAction(virDomainPtr dom,
     return ret;
 }
 
+static char *
+qemuDomainGetSevVmMeasurement(virDomainPtr dom,
+                              unsigned int flags)
+{
+    virQEMUDriverPtr driver = dom->conn->privateData;
+    virDomainObjPtr vm;
+    char *ret = NULL;
+
+    virCheckFlags(0, NULL);
+
+    if (!(vm = qemuDomObjFromDomain(dom)))
+        goto cleanup;
+
+    if (virDomainGetSevVmMeasurementEnsureACL(dom->conn, vm->def) < 0){
+        virReportError(VIR_ERR_OPERATION_INVALID, "%s",  _("get sev vm measurement is not allowed"));
+        goto cleanup;
+    }
+
+    if (qemuDomainObjBeginJob(driver, vm, QEMU_JOB_QUERY) < 0)
+        goto cleanup;
+
+    if (!virDomainObjIsActive(vm)) {
+        virReportError(VIR_ERR_OPERATION_INVALID, "%s",
+                       _("domain is not running"));
+       goto endjob;
+    }
+
+    if (qemuDomainObjEnterMonitorAsync(driver, vm, QEMU_ASYNC_JOB_NONE) < 0)
+        goto endjob;
+
+    VIR_DEBUG("query sev vm measurement");
+    if((ret = qemuMonitorGetSevMeasurement(QEMU_DOMAIN_PRIVATE(vm)->mon)) == NULL){
+        virReportError(VIR_ERR_INTERNAL_ERROR,"get sev vm measurement failed");
+        goto endjob;
+    }
+
+    if (qemuDomainObjExitMonitor(driver, vm) < 0)
+        goto endjob;
+
+ endjob:
+    qemuDomainObjEndJob(driver, vm);
+
+ cleanup:
+    virDomainObjEndAPI(&vm);
+    return ret;
+}
 
 static virHypervisorDriver qemuHypervisorDriver = {
     .name = QEMU_DRIVER_NAME,
@@ -21479,6 +21525,7 @@ static virHypervisorDriver qemuHypervisorDriver = {
     .domainSetVcpu = qemuDomainSetVcpu, /* 3.1.0 */
     .domainSetBlockThreshold = qemuDomainSetBlockThreshold, /* 3.2.0 */
     .domainSetLifecycleAction = qemuDomainSetLifecycleAction, /* 3.9.0 */
+    .domainGetSevVmMeasurement = qemuDomainGetSevVmMeasurement, /* 4.1.0 */
 };
 
 
