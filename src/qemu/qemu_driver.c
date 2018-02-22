@@ -1328,12 +1328,25 @@ static char *qemuConnectGetCapabilities(virConnectPtr conn) {
     virQEMUDriverPtr driver = conn->privateData;
     virCapsPtr caps = NULL;
     char *xml = NULL;
+    virQEMUCapsPtr qemuCaps = NULL;
+    int arch = virArchFromHost(); /* virArch */
 
     if (virConnectGetCapabilitiesEnsureACL(conn) < 0)
         return NULL;
 
     if (!(caps = virQEMUDriverGetCapabilities(driver, true)))
         goto cleanup;
+
+    /*if QEMU_CAPS_KVM is not set do not export host PDH key*/
+    if (!(qemuCaps = virQEMUCapsCacheLookupByArch(driver->qemuCapsCache, arch)) ||
+        !virQEMUCapsGet(qemuCaps, QEMU_CAPS_KVM)){
+
+        if(caps->host.host_pdh){
+            VIR_FREE(caps->host.host_pdh);
+            caps->host.host_pdh = NULL;
+        }
+        VIR_DEBUG("QEMU_CAPS_KVM is not set, do not export host PDH key");
+    }
 
     xml = virCapabilitiesFormatXML(caps);
     virObjectUnref(caps);
