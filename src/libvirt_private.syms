@@ -66,6 +66,7 @@ virCapabilitiesNew;
 virCapabilitiesSetHostCPU;
 virCapabilitiesSetNetPrefix;
 virCapabilitiesGetHostPDH;
+virCapabilitiesHostPDHKeyAvailable;
 
 
 # conf/cpu_conf.h

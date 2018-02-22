@@ -2459,6 +2459,10 @@ struct _virDomainDef {
                              callbacks failed for a non-critical reason
                              (was not able to fill in some data) and thus
                              should be re-run before starting */
+    char* go_dhkey;
+    char* go_sessionInfo;
+    unsigned long go_sev_policy;
+    bool go_sev_launch;
 };
 
 
