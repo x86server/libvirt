@@ -52,6 +52,9 @@
         <ref name="clock"/>
         <ref name="resources"/>
         <ref name="features"/>
+        <optional>
+          <ref name="sev"/>
+        </optional>
         <ref name="events"/>
         <optional>
           <ref name="pm"/>
@@ -4690,6 +4693,27 @@
         </zeroOrMore>
         <optional>
           <ref name="iommu"/>
+        </optional>
+      </interleave>
+    </element>
+  </define>
+  <define name="sev">
+    <element name="sev">
+      <interleave>
+        <optional>
+          <element name="GO_DHKEY">
+            <ref name="absFilePath"/>
+          </element>
+        </optional>
+        <optional>
+          <element name="GO_SessionInfo">
+            <ref name="absFilePath"/>
+          </element>
+        </optional>
+        <optional>
+          <element name="GO_Policy">
+          <ref name="hexuint"/>
+          </element>
         </optional>
       </interleave>
     </element>

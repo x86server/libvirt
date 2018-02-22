@@ -1822,6 +1822,21 @@
         completely).</dd>
     </dl>
 
+    <h3><a id="AMDSEVFeature">SEV feature</a></h3>
+
+    <p>
+      Hypervisor can launch guest in SEV mode if host supports AMD SEV feature.
+    </p>
+
+<pre>
+...
+&lt;sev&gt;
+  &lt;GO_DHKEY&gt;'path to GO DH key file'&lt;/GO_DHKEY&gt;
+  &lt;GO_SessionInfo&gt;'path to GO SessionInfo file'&lt;/GO_SessionInfo&gt;
+  &lt;GO_Policy&gt;'value of SEV VM policy number'&lt;/GO_Policy&gt;
+&lt;/sev&gt;
+...</pre>
+
     <h3><a id="elementsFeatures">Hypervisor features</a></h3>
 
     <p>
