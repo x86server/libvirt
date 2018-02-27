@@ -23,44 +23,44 @@
  * SEV platform commands
  */
 enum {
-	SEV_FACTORY_RESET = 0,
-	SEV_PLATFORM_STATUS,
-	SEV_PEK_GEN,
-	SEV_PEK_CSR,
-	SEV_PDH_GEN,
-	SEV_PDH_CERT_EXPORT,
-	SEV_PEK_CERT_IMPORT,
+    SEV_FACTORY_RESET = 0,
+    SEV_PLATFORM_STATUS,
+    SEV_PEK_GEN,
+    SEV_PEK_CSR,
+    SEV_PDH_GEN,
+    SEV_PDH_CERT_EXPORT,
+    SEV_PEK_CERT_IMPORT,
 
-	SEV_MAX,
+    SEV_MAX,
 };
 
 /**
  * SEV Firmware status code
  */
 typedef enum {
-	SEV_RET_SUCCESS = 0,
-	SEV_RET_INVALID_PLATFORM_STATE,
-	SEV_RET_INVALID_GUEST_STATE,
-	SEV_RET_INAVLID_CONFIG,
-	SEV_RET_INVALID_len,
-	SEV_RET_ALREADY_OWNED,
-	SEV_RET_INVALID_CERTIFICATE,
-	SEV_RET_POLICY_FAILURE,
-	SEV_RET_INACTIVE,
-	SEV_RET_INVALID_ADDRESS,
-	SEV_RET_BAD_SIGNATURE,
-	SEV_RET_BAD_MEASUREMENT,
-	SEV_RET_ASID_OWNED,
-	SEV_RET_INVALID_ASID,
-	SEV_RET_WBINVD_REQUIRED,
-	SEV_RET_DFFLUSH_REQUIRED,
-	SEV_RET_INVALID_GUEST,
-	SEV_RET_INVALID_COMMAND,
-	SEV_RET_ACTIVE,
-	SEV_RET_HWSEV_RET_PLATFORM,
-	SEV_RET_HWSEV_RET_UNSAFE,
-	SEV_RET_UNSUPPORTED,
-	SEV_RET_MAX,
+    SEV_RET_SUCCESS = 0,
+    SEV_RET_INVALID_PLATFORM_STATE,
+    SEV_RET_INVALID_GUEST_STATE,
+    SEV_RET_INAVLID_CONFIG,
+    SEV_RET_INVALID_len,
+    SEV_RET_ALREADY_OWNED,
+    SEV_RET_INVALID_CERTIFICATE,
+    SEV_RET_POLICY_FAILURE,
+    SEV_RET_INACTIVE,
+    SEV_RET_INVALID_ADDRESS,
+    SEV_RET_BAD_SIGNATURE,
+    SEV_RET_BAD_MEASUREMENT,
+    SEV_RET_ASID_OWNED,
+    SEV_RET_INVALID_ASID,
+    SEV_RET_WBINVD_REQUIRED,
+    SEV_RET_DFFLUSH_REQUIRED,
+    SEV_RET_INVALID_GUEST,
+    SEV_RET_INVALID_COMMAND,
+    SEV_RET_ACTIVE,
+    SEV_RET_HWSEV_RET_PLATFORM,
+    SEV_RET_HWSEV_RET_UNSAFE,
+    SEV_RET_UNSUPPORTED,
+    SEV_RET_MAX,
 } sev_ret_code;
 
 /**
@@ -74,12 +74,12 @@ typedef enum {
  * @guest_count: number of active guests
  */
 struct sev_user_data_status {
-	__u8 api_major;				/* Out */
-	__u8 api_minor;				/* Out */
-	__u8 state;				/* Out */
-	__u32 flags;				/* Out */
-	__u8 build;				/* Out */
-	__u32 guest_count;			/* Out */
+    __u8 api_major;				/* Out */
+    __u8 api_minor;				/* Out */
+    __u8 state;				/* Out */
+    __u32 flags;				/* Out */
+    __u8 build;				/* Out */
+    __u32 guest_count;			/* Out */
 } __attribute__((packed));
 
 /**
@@ -89,8 +89,8 @@ struct sev_user_data_status {
  * @length: length of certificate
  */
 struct sev_user_data_pek_csr {
-	__u64 address;				/* In */
-	__u32 length;				/* In/Out */
+    __u64 address;				/* In */
+    __u32 length;				/* In/Out */
 } __attribute__((packed));
 
 /**
@@ -102,10 +102,10 @@ struct sev_user_data_pek_csr {
  * @oca_len: length of OCA certificate
  */
 struct sev_user_data_pek_cert_import {
-	__u64 pek_cert_address;			/* In */
-	__u32 pek_cert_len;			/* In */
-	__u64 oca_cert_address;			/* In */
-	__u32 oca_cert_len;			/* In */
+    __u64 pek_cert_address;			/* In */
+    __u32 pek_cert_len;			/* In */
+    __u64 oca_cert_address;			/* In */
+    __u32 oca_cert_len;			/* In */
 } __attribute__((packed));
 
 /**
@@ -117,10 +117,10 @@ struct sev_user_data_pek_cert_import {
  * @cert_chain_len: length of PDH certificate chain
  */
 struct sev_user_data_pdh_cert_export {
-	__u64 pdh_cert_address;			/* In */
-	__u32 pdh_cert_len;			/* In/Out */
-	__u64 cert_chain_address;		/* In */
-	__u32 cert_chain_len;			/* In/Out */
+    __u64 pdh_cert_address;			/* In */
+    __u32 pdh_cert_len;			/* In/Out */
+    __u64 cert_chain_address;		/* In */
+    __u32 cert_chain_len;			/* In/Out */
 } __attribute__((packed));
 
 /**
@@ -131,9 +131,9 @@ struct sev_user_data_pdh_cert_export {
  * @error: SEV FW return code on failure
  */
 struct sev_issue_cmd {
-	__u32 cmd;				/* In */
-	__u64 data;				/* In */
-	__u32 error;				/* Out */
+    __u32 cmd;				/* In */
+    __u64 data;				/* In */
+    __u32 error;				/* Out */
 } __attribute__((packed));
 
 #define SEV_IOC_TYPE		'S'

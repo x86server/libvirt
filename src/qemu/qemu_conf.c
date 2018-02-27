@@ -1050,9 +1050,8 @@ virCapsPtr virQEMUDriverCreateCapabilities(virQEMUDriverPtr driver)
 
     /*get host pdh key if host supports sev*/
     caps->host.host_pdh = NULL;
-    if (virCapabilitiesGetHostPDH(&(caps->host.host_pdh), NULL) !=0 ) {
+    if (virCapabilitiesGetHostPDH(&(caps->host.host_pdh), NULL) != 0)
         VIR_DEBUG("can not get host PDH key, will not launch guest in sev mode");
-    }
 
     /* access sec drivers and create a sec model for each one */
     if (!(sec_managers = qemuSecurityGetNested(driver->securityManager)))

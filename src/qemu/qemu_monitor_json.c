@@ -7906,7 +7906,7 @@ qemuMonitorJSONGetSevMeasurement(qemuMonitorPtr mon)
 
     if ((sev_measurement = virJSONValueObjectGetString(data, "data"))) {
         VIR_DEBUG("VM sev_measurment %s", sev_measurement);
-        if(VIR_STRDUP(dup_sev_measurement, sev_measurement) < 0){
+        if (VIR_STRDUP(dup_sev_measurement, sev_measurement) < 0) {
             dup_sev_measurement = NULL;
             goto cleanup;
         }
@@ -7914,7 +7914,7 @@ qemuMonitorJSONGetSevMeasurement(qemuMonitorPtr mon)
         VIR_WARN("missing sev measurement value");
     }
 
-cleanup:
+ cleanup:
     virJSONValueFree(cmd);
     virJSONValueFree(reply);
     return dup_sev_measurement;

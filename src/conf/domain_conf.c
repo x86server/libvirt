@@ -18055,8 +18055,8 @@ static int virDomainSEVParse(virDomainDefPtr def,
     if ((virXPathNode("./sev[1]", ctxt)) != NULL) {
         def->go_sev_launch = true;
         temp = virXPathString("string(./sev/GO_DHKEY)", ctxt);
-         if (temp){
-            if(VIR_STRDUP(def->go_dhkey, temp) < 0){
+         if (temp) {
+            if (VIR_STRDUP(def->go_dhkey, temp) < 0) {
                 VIR_FREE(temp);
                 goto error;
             }
@@ -18069,8 +18069,8 @@ static int virDomainSEVParse(virDomainDefPtr def,
         }
 
         temp = virXPathString("string(./sev/GO_SessionInfo)", ctxt);
-        if (temp){
-            if(VIR_STRDUP(def->go_sessionInfo, temp) < 0){
+        if (temp) {
+            if (VIR_STRDUP(def->go_sessionInfo, temp) < 0) {
                 VIR_FREE(temp);
                 goto error;
             }
@@ -18084,7 +18084,7 @@ static int virDomainSEVParse(virDomainDefPtr def,
         }
 
         rc = virXPathULongHex("string(./sev/GO_Policy)", ctxt, &sev_policy);
-        if (rc != 0 ) {
+        if (rc != 0) {
             virReportError(VIR_ERR_XML_ERROR,
                        _("Unknow sev_policy nubmer rc: %d"), rc);
             goto error;
@@ -18098,7 +18098,7 @@ static int virDomainSEVParse(virDomainDefPtr def,
 
     return 0;
 
-error:
+ error:
     VIR_FREE(def->go_dhkey);
     VIR_FREE(def->go_sessionInfo);
 
@@ -19159,9 +19159,9 @@ virDomainDefParseXML(xmlDocPtr xml,
     }
     VIR_FREE(nodes);
 
-    if(virCapabilitiesHostPDHKeyAvailable(caps)){
+    if (virCapabilitiesHostPDHKeyAvailable(caps)) {
         VIR_DEBUG("host provides PDH key, parse GO sev tags");
-        if(virDomainSEVParse(def, ctxt) < 0){
+        if (virDomainSEVParse(def, ctxt) < 0) {
             virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
                        _("cannot parse SEV tag from domain XML file"));
             goto error;

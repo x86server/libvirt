@@ -12132,7 +12132,7 @@ virDomainGetSevVmMeasurement(virDomainPtr domain,
 
     virReportUnsupportedError();
 
-error:
+ error:
     virDispatchError(domain->conn);
     return NULL;
 }

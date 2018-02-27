@@ -57,7 +57,9 @@ virCapabilitiesFreeGuest;
 virCapabilitiesFreeMachines;
 virCapabilitiesFreeNUMAInfo;
 virCapabilitiesGetCpusForNodemask;
+virCapabilitiesGetHostPDH;
 virCapabilitiesGetNodeInfo;
+virCapabilitiesHostPDHKeyAvailable;
 virCapabilitiesHostSecModelAddBaseLabel;
 virCapabilitiesInitCaches;
 virCapabilitiesInitNUMA;
@@ -65,8 +67,6 @@ virCapabilitiesInitPages;
 virCapabilitiesNew;
 virCapabilitiesSetHostCPU;
 virCapabilitiesSetNetPrefix;
-virCapabilitiesGetHostPDH;
-virCapabilitiesHostPDHKeyAvailable;
 
 
 # conf/cpu_conf.h

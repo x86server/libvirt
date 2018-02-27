@@ -32,7 +32,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <linux/ioctl.h>
-#include <libvirt/psp-sev.h>
+
 
 #include "capabilities.h"
 #include "cpu_conf.h"
@@ -1082,7 +1082,7 @@ virCapabilitiesFormatXML(virCapsPtr caps)
     }
 
     /*add host pdh key into XML file if host supports sev*/
-    if(caps->host.host_pdh != NULL && caps->host.host_pdh[0] != '\0'){
+    if (caps->host.host_pdh != NULL && caps->host.host_pdh[0] != '\0') {
         virBufferAddLit(&buf, "<sev>\n");
         virBufferAdjustIndent(&buf, 2);
          virBufferAsprintf(&buf, "<HOST_PDH_KEY>%s</HOST_PDH_KEY>\n", caps->host.host_pdh);
@@ -1777,9 +1777,9 @@ int virCapabilitiesGetHostPDH(char** host_pdh, int *error)
     char* temp;
     char* temp_base64;
 
-    if(host_pdh == NULL || *host_pdh){
+    if (host_pdh == NULL || *host_pdh) {
         virReportError(VIR_ERR_INTERNAL_ERROR,
-                       "%s", _( "buffer to hold host pdh cannot be invalid"));
+                       "%s", _("buffer to hold host pdh cannot be invalid"));
         return -EFAULT;
     }
 
@@ -1788,7 +1788,7 @@ int virCapabilitiesGetHostPDH(char** host_pdh, int *error)
         return -ENOENT;
     }
 
-    if ((fd = open("/dev/sev", O_RDONLY)) < 0){
+    if ((fd = open("/dev/sev", O_RDONLY)) < 0) {
         virReportSystemError(errno, "%s", _("cannot open file /dev/sev"));
         return -ENODEV;
     }
@@ -1801,27 +1801,27 @@ int virCapabilitiesGetHostPDH(char** host_pdh, int *error)
 
     VIR_DEBUG("SEV_PDH_CERT_EXPORT: cert_chain_len 0x%0x, sev_pdh_cert.pdh_cert_len 0x%0x", sev_pdh_cert.cert_chain_len, sev_pdh_cert.pdh_cert_len);
 
-    if(VIR_ALLOC_N(temp,sev_pdh_cert.cert_chain_len) < 0)
+    if (VIR_ALLOC_N(temp, sev_pdh_cert.cert_chain_len) < 0)
         goto erro;
-    sev_pdh_cert.cert_chain_address=(__u64)temp;
+    sev_pdh_cert.cert_chain_address = (__u64)temp;
 
-    if(VIR_ALLOC_N(temp,sev_pdh_cert.pdh_cert_len) < 0)
+    if (VIR_ALLOC_N(temp, sev_pdh_cert.pdh_cert_len) < 0)
         goto erro;
-    sev_pdh_cert.pdh_cert_address=(__u64)temp;
+    sev_pdh_cert.pdh_cert_address = (__u64)temp;
 
     input.cmd = SEV_PDH_CERT_EXPORT;
     input.data = (__u64)&sev_pdh_cert;
     ret = ioctl(fd, SEV_ISSUE_CMD, &input);
-    if(ret != 0){
+    if (ret != 0) {
         virReportError(VIR_ERR_INTERNAL_ERROR,
-                        _( "SEV_PDH_CERT_EXPORT failed, ret 0x%0x, erro 0x%0x"), ret, input.error);
+                        _("SEV_PDH_CERT_EXPORT failed, ret 0x%0x, erro 0x%0x"), ret, input.error);
         goto erro;
     }
 
     temp_base64 = virStringEncodeBase64((const uint8_t*)sev_pdh_cert.pdh_cert_address, sev_pdh_cert.pdh_cert_len);
-    *host_pdh=temp_base64;
+    *host_pdh = temp_base64;
 
-erro:
+ erro:
     if (error)
         *error = input.error;
 
@@ -1830,16 +1830,18 @@ erro:
     temp = (char*)sev_pdh_cert.pdh_cert_address;
     VIR_FREE(temp);
 
-    close(fd);
+    if (VIR_CLOSE(fd))
+        return -1;
+
     return ret;
 }
 
 bool virCapabilitiesHostPDHKeyAvailable(virCapsPtr caps)
 {
-    if(!caps)
+    if (!caps)
         return false;
 
-    if(caps->host.host_pdh != NULL && caps->host.host_pdh[0] != '\0')
+    if (caps->host.host_pdh != NULL && caps->host.host_pdh[0] != '\0')
         return true;
     else
         return false;

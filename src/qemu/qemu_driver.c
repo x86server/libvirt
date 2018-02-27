@@ -1339,9 +1339,9 @@ static char *qemuConnectGetCapabilities(virConnectPtr conn) {
 
     /*if QEMU_CAPS_KVM is not set do not export host PDH key*/
     if (!(qemuCaps = virQEMUCapsCacheLookupByArch(driver->qemuCapsCache, arch)) ||
-        !virQEMUCapsGet(qemuCaps, QEMU_CAPS_KVM)){
+        !virQEMUCapsGet(qemuCaps, QEMU_CAPS_KVM)) {
 
-        if(caps->host.host_pdh){
+        if (caps->host.host_pdh) {
             VIR_FREE(caps->host.host_pdh);
             caps->host.host_pdh = NULL;
         }
@@ -21272,7 +21272,7 @@ qemuDomainGetSevVmMeasurement(virDomainPtr dom,
     if (!(vm = qemuDomObjFromDomain(dom)))
         goto cleanup;
 
-    if (virDomainGetSevVmMeasurementEnsureACL(dom->conn, vm->def) < 0){
+    if (virDomainGetSevVmMeasurementEnsureACL(dom->conn, vm->def) < 0) {
         virReportError(VIR_ERR_OPERATION_INVALID, "%s",  _("get sev vm measurement is not allowed"));
         goto cleanup;
     }
@@ -21290,8 +21290,8 @@ qemuDomainGetSevVmMeasurement(virDomainPtr dom,
         goto endjob;
 
     VIR_DEBUG("query sev vm measurement");
-    if((ret = qemuMonitorGetSevMeasurement(QEMU_DOMAIN_PRIVATE(vm)->mon)) == NULL){
-        virReportError(VIR_ERR_INTERNAL_ERROR,"get sev vm measurement failed");
+    if ((ret = qemuMonitorGetSevMeasurement(QEMU_DOMAIN_PRIVATE(vm)->mon)) == NULL) {
+        virReportError(VIR_ERR_INTERNAL_ERROR, "%s", _("get sev vm measurement failed"));
         goto endjob;
     }
 

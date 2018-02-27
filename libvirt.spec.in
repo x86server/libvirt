@@ -2186,6 +2186,7 @@ exit 0
 %{_includedir}/libvirt/libvirt-stream.h
 %{_includedir}/libvirt/libvirt-qemu.h
 %{_includedir}/libvirt/libvirt-lxc.h
+%{_includedir}/libvirt/psp-sev.h
 %{_libdir}/pkgconfig/libvirt.pc
 %{_libdir}/pkgconfig/libvirt-admin.pc
 %{_libdir}/pkgconfig/libvirt-qemu.pc

@@ -9835,11 +9835,11 @@ qemuBuildSEVGuestLaunchCommandLine(virCommandPtr cmd, virDomainDefPtr def)
      virCommandAddArg(cmd, "-object");
      virBufferAddLit(&buf_sev_object, "sev-guest");
      virBufferAddLit(&buf_sev_object, ",id=sev0");
-     if(def->go_sev_policy > 0)
+     if (def->go_sev_policy > 0)
          virBufferAsprintf(&buf_sev_object, ",policy=0x%0x", (unsigned int)def->go_sev_policy);
 
-     virBufferAsprintf(&buf_sev_object, ",cbitpos=47");
-     virBufferAsprintf(&buf_sev_object, ",reduced-phys-bits=5");
+     virBufferAddLit(&buf_sev_object, ",cbitpos=47");
+     virBufferAddLit(&buf_sev_object, ",reduced-phys-bits=5");
      /*cannot test the following blobs from GO now*/
 /*     if(def->go_dhkey)
         virBufferAsprintf(&buf_sev_object, ",dh-cert-file=%s", def->go_dhkey);
@@ -9911,7 +9911,7 @@ qemuBuildCommandLine(virQEMUDriverPtr driver,
         virCommandAddArg(cmd, "-enable-fips");
 
     /*build qemu cmd options for launching sev guest*/
-    if(virCapabilitiesHostPDHKeyAvailable(caps) && def->go_sev_launch){
+    if (virCapabilitiesHostPDHKeyAvailable(caps) && def->go_sev_launch) {
         VIR_DEBUG("host is sev capable and GO launch guest in sev mode");
         qemuBuildSEVGuestLaunchCommandLine(cmd, def);
     }else
